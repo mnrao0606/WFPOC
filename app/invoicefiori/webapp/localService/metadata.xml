@@ -1,0 +1,891 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+    <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Capabilities.V1.xml">
+        <edmx:Include Alias="Capabilities" Namespace="Org.OData.Capabilities.V1"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/Common.xml">
+        <edmx:Include Alias="Common" Namespace="com.sap.vocabularies.Common.v1"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.xml">
+        <edmx:Include Alias="Core" Namespace="Org.OData.Core.V1"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/UI.xml">
+        <edmx:Include Alias="UI" Namespace="com.sap.vocabularies.UI.v1"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Validation.V1.xml">
+        <edmx:Include Alias="Validation" Namespace="Org.OData.Validation.V1"/>
+    </edmx:Reference>
+    <edmx:DataServices>
+        <Schema Namespace="invoicesrv" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+            <EntityContainer Name="EntityContainer">
+                <EntitySet Name="CompanyCodes" EntityType="invoicesrv.CompanyCodes">
+                    <NavigationPropertyBinding Path="currency" Target="Currencies"/>
+                    <NavigationPropertyBinding Path="addresses" Target="Addresses"/>
+                    <NavigationPropertyBinding Path="Suppliers" Target="Suppliers"/>
+                </EntitySet>
+                <EntitySet Name="Suppliers" EntityType="invoicesrv.Suppliers">
+                    <NavigationPropertyBinding Path="companycode" Target="CompanyCodes"/>
+                    <NavigationPropertyBinding Path="addresses" Target="Addresses"/>
+                </EntitySet>
+                <EntitySet Name="Addresses" EntityType="invoicesrv.Addresses">
+                    <NavigationPropertyBinding Path="supplier" Target="Suppliers"/>
+                    <NavigationPropertyBinding Path="companycode" Target="CompanyCodes"/>
+                </EntitySet>
+                <EntitySet Name="GLAccount" EntityType="invoicesrv.GLAccount"/>
+                <EntitySet Name="CostCenetr" EntityType="invoicesrv.CostCenetr"/>
+                <EntitySet Name="PurchaseOrder" EntityType="invoicesrv.PurchaseOrder"/>
+                <EntitySet Name="InvoiceWorkflows" EntityType="invoicesrv.InvoiceWorkflows">
+                    <NavigationPropertyBinding Path="invoice" Target="Invoices"/>
+                    <NavigationPropertyBinding Path="SiblingEntity" Target="InvoiceWorkflows"/>
+                </EntitySet>
+                <EntitySet Name="WFUsers" EntityType="invoicesrv.WFUsers"/>
+                <EntitySet Name="Invoices" EntityType="invoicesrv.Invoices">
+                    <NavigationPropertyBinding Path="companycode" Target="CompanyCodes"/>
+                    <NavigationPropertyBinding Path="supplier" Target="Suppliers"/>
+                    <NavigationPropertyBinding Path="currency" Target="Currencies"/>
+                    <NavigationPropertyBinding Path="items" Target="InvoiceItems"/>
+                    <NavigationPropertyBinding Path="wfitems" Target="InvoiceWorkflows"/>
+                    <NavigationPropertyBinding Path="SiblingEntity" Target="Invoices"/>
+                </EntitySet>
+                <EntitySet Name="Currencies" EntityType="invoicesrv.Currencies">
+                    <NavigationPropertyBinding Path="texts" Target="Currencies_texts"/>
+                    <NavigationPropertyBinding Path="localized" Target="Currencies_texts"/>
+                </EntitySet>
+                <EntitySet Name="InvoiceItems" EntityType="invoicesrv.InvoiceItems">
+                    <NavigationPropertyBinding Path="invoice" Target="Invoices"/>
+                    <NavigationPropertyBinding Path="purchaseorder" Target="PurchaseOrder"/>
+                    <NavigationPropertyBinding Path="glaccount" Target="GLAccount"/>
+                    <NavigationPropertyBinding Path="costCenter" Target="CostCenetr"/>
+                    <NavigationPropertyBinding Path="currency" Target="Currencies"/>
+                    <NavigationPropertyBinding Path="SiblingEntity" Target="InvoiceItems"/>
+                </EntitySet>
+                <EntitySet Name="Currencies_texts" EntityType="invoicesrv.Currencies_texts"/>
+                <FunctionImport Name="getOrderDefaults" Function="invoicesrv.getOrderDefaults" EntitySet="Invoices"/>
+            </EntityContainer>
+            <EntityType Name="CompanyCodes">
+                <Key>
+                    <PropertyRef Name="companycode"/>
+                </Key>
+                <Property Name="createdAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="createdBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="modifiedAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="modifiedBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="companycode" Type="Edm.String" MaxLength="4" Nullable="false"/>
+                <Property Name="name" Type="Edm.String" MaxLength="100"/>
+                <NavigationProperty Name="currency" Type="invoicesrv.Currencies">
+                    <ReferentialConstraint Property="currency_code" ReferencedProperty="code"/>
+                </NavigationProperty>
+                <Property Name="currency_code" Type="Edm.String" MaxLength="3"/>
+                <NavigationProperty Name="addresses" Type="Collection(invoicesrv.Addresses)" Partner="companycode">
+                    <OnDelete Action="Cascade"/>
+                </NavigationProperty>
+                <NavigationProperty Name="Suppliers" Type="Collection(invoicesrv.Suppliers)" Partner="companycode">
+                    <OnDelete Action="Cascade"/>
+                </NavigationProperty>
+            </EntityType>
+            <EntityType Name="Suppliers">
+                <Key>
+                    <PropertyRef Name="ID"/>
+                </Key>
+                <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="createdAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="createdBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="modifiedAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="modifiedBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="supplier" Type="Edm.String" MaxLength="10"/>
+                <Property Name="name" Type="Edm.String" MaxLength="50"/>
+                <Property Name="amountopen" Type="Edm.Decimal" Scale="variable"/>
+                <Property Name="amountclose" Type="Edm.Decimal" Scale="variable"/>
+                <Property Name="IsBlocked" Type="Edm.Boolean"/>
+                <NavigationProperty Name="companycode" Type="invoicesrv.CompanyCodes" Partner="Suppliers">
+                    <ReferentialConstraint Property="companycode_companycode" ReferencedProperty="companycode"/>
+                </NavigationProperty>
+                <Property Name="companycode_companycode" Type="Edm.String" MaxLength="4"/>
+                <NavigationProperty Name="addresses" Type="Collection(invoicesrv.Addresses)" Partner="supplier">
+                    <OnDelete Action="Cascade"/>
+                </NavigationProperty>
+            </EntityType>
+            <EntityType Name="Addresses">
+                <Key>
+                    <PropertyRef Name="ID"/>
+                </Key>
+                <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="createdAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="createdBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="modifiedAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="modifiedBy" Type="Edm.String" MaxLength="255"/>
+                <NavigationProperty Name="supplier" Type="invoicesrv.Suppliers" Partner="addresses">
+                    <ReferentialConstraint Property="supplier_ID" ReferencedProperty="ID"/>
+                </NavigationProperty>
+                <Property Name="supplier_ID" Type="Edm.Guid"/>
+                <NavigationProperty Name="companycode" Type="invoicesrv.CompanyCodes" Partner="addresses">
+                    <ReferentialConstraint Property="companycode_companycode" ReferencedProperty="companycode"/>
+                </NavigationProperty>
+                <Property Name="companycode_companycode" Type="Edm.String" MaxLength="4"/>
+                <Property Name="country" Type="Edm.String" MaxLength="30"/>
+                <Property Name="state" Type="Edm.String" MaxLength="30"/>
+                <Property Name="city" Type="Edm.String" MaxLength="30"/>
+                <Property Name="address" Type="Edm.String" MaxLength="100"/>
+                <Property Name="zipcode" Type="Edm.String" MaxLength="10"/>
+                <Property Name="default" Type="Edm.Boolean"/>
+            </EntityType>
+            <EntityType Name="GLAccount">
+                <Key>
+                    <PropertyRef Name="id"/>
+                </Key>
+                <Property Name="id" Type="Edm.String" MaxLength="50" Nullable="false"/>
+                <Property Name="name" Type="Edm.String" MaxLength="200"/>
+            </EntityType>
+            <EntityType Name="CostCenetr">
+                <Key>
+                    <PropertyRef Name="id"/>
+                </Key>
+                <Property Name="id" Type="Edm.String" MaxLength="50" Nullable="false"/>
+                <Property Name="name" Type="Edm.String" MaxLength="200"/>
+                <Property Name="PersonResponsible" Type="Edm.String" MaxLength="50"/>
+            </EntityType>
+            <EntityType Name="PurchaseOrder">
+                <Key>
+                    <PropertyRef Name="purchaseorder"/>
+                </Key>
+                <Property Name="purchaseorder" Type="Edm.String" MaxLength="10" Nullable="false"/>
+                <Property Name="reference" Type="Edm.String" MaxLength="50"/>
+                <Property Name="creator" Type="Edm.String" MaxLength="50"/>
+            </EntityType>
+            <EntityType Name="InvoiceWorkflows">
+                <Key>
+                    <PropertyRef Name="ID"/>
+                    <PropertyRef Name="IsActiveEntity"/>
+                </Key>
+                <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+                <NavigationProperty Name="invoice" Type="invoicesrv.Invoices" Partner="wfitems">
+                    <ReferentialConstraint Property="invoice_ID" ReferencedProperty="ID"/>
+                </NavigationProperty>
+                <Property Name="invoice_ID" Type="Edm.Guid"/>
+                <Property Name="instanceID" Type="Edm.Guid"/>
+                <Property Name="wfstatus" Type="Edm.String" MaxLength="50"/>
+                <Property Name="wfapprover" Type="Edm.String" MaxLength="225"/>
+                <Property Name="requestcomment" Type="Edm.String" MaxLength="225"/>
+                <Property Name="responsecomment" Type="Edm.String" MaxLength="225"/>
+                <Property Name="IsActiveEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="true"/>
+                <Property Name="HasActiveEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="false"/>
+                <Property Name="HasDraftEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="false"/>
+                <NavigationProperty Name="DraftAdministrativeData" Type="invoicesrv.DraftAdministrativeData" ContainsTarget="true"/>
+                <NavigationProperty Name="SiblingEntity" Type="invoicesrv.InvoiceWorkflows"/>
+            </EntityType>
+            <EntityType Name="WFUsers">
+                <Key>
+                    <PropertyRef Name="id"/>
+                </Key>
+                <Property Name="id" Type="Edm.String" MaxLength="10" Nullable="false"/>
+                <Property Name="name" Type="Edm.String" MaxLength="50"/>
+                <Property Name="email" Type="Edm.String" MaxLength="50"/>
+            </EntityType>
+            <EntityType Name="Invoices">
+                <Key>
+                    <PropertyRef Name="ID"/>
+                    <PropertyRef Name="IsActiveEntity"/>
+                </Key>
+                <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="createdAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="createdBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="modifiedAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="modifiedBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="invoiceID" Type="Edm.String" MaxLength="10"/>
+                <Property Name="fiscalyear" Type="Edm.String" MaxLength="4"/>
+                <Property Name="postingDate" Type="Edm.Date"/>
+                <Property Name="documentDate" Type="Edm.Date"/>
+                <NavigationProperty Name="companycode" Type="invoicesrv.CompanyCodes">
+                    <ReferentialConstraint Property="companycode_companycode" ReferencedProperty="companycode"/>
+                </NavigationProperty>
+                <Property Name="companycode_companycode" Type="Edm.String" MaxLength="4"/>
+                <NavigationProperty Name="supplier" Type="invoicesrv.Suppliers">
+                    <ReferentialConstraint Property="supplier_ID" ReferencedProperty="ID"/>
+                </NavigationProperty>
+                <Property Name="supplier_ID" Type="Edm.Guid"/>
+                <Property Name="reference" Type="Edm.String" MaxLength="100"/>
+                <Property Name="status" Type="Edm.String" MaxLength="20"/>
+                <Property Name="totamount" Type="Edm.Decimal" Scale="variable"/>
+                <NavigationProperty Name="currency" Type="invoicesrv.Currencies">
+                    <ReferentialConstraint Property="currency_code" ReferencedProperty="code"/>
+                </NavigationProperty>
+                <Property Name="currency_code" Type="Edm.String" MaxLength="3"/>
+                <Property Name="instanceID" Type="Edm.Guid"/>
+                <Property Name="wfstatus" Type="Edm.String" MaxLength="50"/>
+                <Property Name="wfapprover" Type="Edm.String" MaxLength="225"/>
+                <Property Name="requestcomment" Type="Edm.String" MaxLength="225"/>
+                <Property Name="responsecomment" Type="Edm.String" MaxLength="225"/>
+                <Property Name="address" Type="Edm.String" MaxLength="225"/>
+                <NavigationProperty Name="items" Type="Collection(invoicesrv.InvoiceItems)" Partner="invoice">
+                    <OnDelete Action="Cascade"/>
+                </NavigationProperty>
+                <NavigationProperty Name="wfitems" Type="Collection(invoicesrv.InvoiceWorkflows)" Partner="invoice">
+                    <OnDelete Action="Cascade"/>
+                </NavigationProperty>
+                <Property Name="IsActiveEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="true"/>
+                <Property Name="HasActiveEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="false"/>
+                <Property Name="HasDraftEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="false"/>
+                <NavigationProperty Name="DraftAdministrativeData" Type="invoicesrv.DraftAdministrativeData" ContainsTarget="true"/>
+                <NavigationProperty Name="SiblingEntity" Type="invoicesrv.Invoices"/>
+            </EntityType>
+            <EntityType Name="Currencies">
+                <Key>
+                    <PropertyRef Name="code"/>
+                </Key>
+                <Property Name="name" Type="Edm.String" MaxLength="255"/>
+                <Property Name="descr" Type="Edm.String" MaxLength="1000"/>
+                <Property Name="code" Type="Edm.String" MaxLength="3" Nullable="false"/>
+                <Property Name="symbol" Type="Edm.String" MaxLength="5"/>
+                <NavigationProperty Name="texts" Type="Collection(invoicesrv.Currencies_texts)">
+                    <OnDelete Action="Cascade"/>
+                </NavigationProperty>
+                <NavigationProperty Name="localized" Type="invoicesrv.Currencies_texts">
+                    <ReferentialConstraint Property="code" ReferencedProperty="code"/>
+                </NavigationProperty>
+            </EntityType>
+            <EntityType Name="InvoiceItems">
+                <Key>
+                    <PropertyRef Name="ID"/>
+                    <PropertyRef Name="IsActiveEntity"/>
+                </Key>
+                <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="createdAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="createdBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="modifiedAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="modifiedBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="invItem" Type="Edm.String" MaxLength="10"/>
+                <NavigationProperty Name="invoice" Type="invoicesrv.Invoices" Partner="items">
+                    <ReferentialConstraint Property="invoice_ID" ReferencedProperty="ID"/>
+                </NavigationProperty>
+                <Property Name="invoice_ID" Type="Edm.Guid"/>
+                <NavigationProperty Name="purchaseorder" Type="invoicesrv.PurchaseOrder">
+                    <ReferentialConstraint Property="purchaseorder_purchaseorder" ReferencedProperty="purchaseorder"/>
+                </NavigationProperty>
+                <Property Name="purchaseorder_purchaseorder" Type="Edm.String" MaxLength="10"/>
+                <Property Name="poitem" Type="Edm.String" MaxLength="5"/>
+                <NavigationProperty Name="glaccount" Type="invoicesrv.GLAccount">
+                    <ReferentialConstraint Property="glaccount_id" ReferencedProperty="id"/>
+                </NavigationProperty>
+                <Property Name="glaccount_id" Type="Edm.String" MaxLength="50"/>
+                <NavigationProperty Name="costCenter" Type="invoicesrv.CostCenetr">
+                    <ReferentialConstraint Property="costCenter_id" ReferencedProperty="id"/>
+                </NavigationProperty>
+                <Property Name="costCenter_id" Type="Edm.String" MaxLength="50"/>
+                <Property Name="quantity" Type="Edm.Int32"/>
+                <Property Name="price" Type="Edm.Decimal" Scale="variable"/>
+                <Property Name="netprice" Type="Edm.Decimal" Scale="variable"/>
+                <NavigationProperty Name="currency" Type="invoicesrv.Currencies">
+                    <ReferentialConstraint Property="currency_code" ReferencedProperty="code"/>
+                </NavigationProperty>
+                <Property Name="currency_code" Type="Edm.String" MaxLength="3"/>
+                <Property Name="IsActiveEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="true"/>
+                <Property Name="HasActiveEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="false"/>
+                <Property Name="HasDraftEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="false"/>
+                <NavigationProperty Name="DraftAdministrativeData" Type="invoicesrv.DraftAdministrativeData" ContainsTarget="true"/>
+                <NavigationProperty Name="SiblingEntity" Type="invoicesrv.InvoiceItems"/>
+            </EntityType>
+            <EntityType Name="DraftAdministrativeData">
+                <Key>
+                    <PropertyRef Name="DraftUUID"/>
+                </Key>
+                <Property Name="DraftUUID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="CreationDateTime" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="CreatedByUser" Type="Edm.String" MaxLength="256"/>
+                <Property Name="DraftIsCreatedByMe" Type="Edm.Boolean"/>
+                <Property Name="LastChangeDateTime" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="LastChangedByUser" Type="Edm.String" MaxLength="256"/>
+                <Property Name="InProcessByUser" Type="Edm.String" MaxLength="256"/>
+                <Property Name="DraftIsProcessedByMe" Type="Edm.Boolean"/>
+            </EntityType>
+            <EntityType Name="Currencies_texts">
+                <Key>
+                    <PropertyRef Name="locale"/>
+                    <PropertyRef Name="code"/>
+                </Key>
+                <Property Name="locale" Type="Edm.String" MaxLength="14" Nullable="false"/>
+                <Property Name="name" Type="Edm.String" MaxLength="255"/>
+                <Property Name="descr" Type="Edm.String" MaxLength="1000"/>
+                <Property Name="code" Type="Edm.String" MaxLength="3" Nullable="false"/>
+            </EntityType>
+            <Action Name="draftPrepare" IsBound="true" EntitySetPath="in">
+                <Parameter Name="in" Type="invoicesrv.InvoiceWorkflows"/>
+                <Parameter Name="SideEffectsQualifier" Type="Edm.String"/>
+                <ReturnType Type="invoicesrv.InvoiceWorkflows"/>
+            </Action>
+            <Action Name="draftPrepare" IsBound="true" EntitySetPath="in">
+                <Parameter Name="in" Type="invoicesrv.Invoices"/>
+                <Parameter Name="SideEffectsQualifier" Type="Edm.String"/>
+                <ReturnType Type="invoicesrv.Invoices"/>
+            </Action>
+            <Action Name="draftPrepare" IsBound="true" EntitySetPath="in">
+                <Parameter Name="in" Type="invoicesrv.InvoiceItems"/>
+                <Parameter Name="SideEffectsQualifier" Type="Edm.String"/>
+                <ReturnType Type="invoicesrv.InvoiceItems"/>
+            </Action>
+            <Action Name="setOrderProcessing" IsBound="true">
+                <Parameter Name="_it" Type="invoicesrv.Invoices"/>
+            </Action>
+            <Action Name="setOrderOpen" IsBound="true">
+                <Parameter Name="_it" Type="invoicesrv.Invoices"/>
+            </Action>
+            <Action Name="requestInfo" IsBound="true" EntitySetPath="_it">
+                <Parameter Name="_it" Type="invoicesrv.Invoices"/>
+                <Parameter Name="SendTo" Type="Edm.String" MaxLength="500"/>
+                <Parameter Name="Description" Type="Edm.String" MaxLength="100"/>
+                <Parameter Name="IsMultipleApprovars" Type="Edm.Boolean"/>
+                <ReturnType Type="invoicesrv.Invoices"/>
+            </Action>
+            <Action Name="updateWFInfo" IsBound="true">
+                <Parameter Name="in" Type="invoicesrv.Invoices"/>
+                <Parameter Name="responsecomment" Type="Edm.String" MaxLength="225"/>
+                <Parameter Name="wfstatus" Type="Edm.String" MaxLength="500"/>
+                <Parameter Name="status" Type="Edm.String" MaxLength="50"/>
+                <Parameter Name="wfapprover" Type="Edm.String" MaxLength="50"/>
+                <Parameter Name="instanceID" Type="Edm.Guid"/>
+            </Action>
+            <Action Name="draftActivate" IsBound="true" EntitySetPath="in">
+                <Parameter Name="in" Type="invoicesrv.Invoices"/>
+                <ReturnType Type="invoicesrv.Invoices"/>
+            </Action>
+            <Action Name="draftEdit" IsBound="true" EntitySetPath="in">
+                <Parameter Name="in" Type="invoicesrv.Invoices"/>
+                <Parameter Name="PreserveChanges" Type="Edm.Boolean"/>
+                <ReturnType Type="invoicesrv.Invoices"/>
+            </Action>
+            <Function Name="getOrderDefaults" IsBound="false" IsComposable="false">
+                <ReturnType Type="invoicesrv.Invoices"/>
+            </Function>
+            <Annotations Target="invoicesrv.EntityContainer/CompanyCodes">
+                <Annotation Term="Capabilities.DeleteRestrictions">
+                    <Record Type="Capabilities.DeleteRestrictionsType">
+                        <PropertyValue Property="Deletable" Bool="false"/>
+                    </Record>
+                </Annotation>
+                <Annotation Term="Capabilities.InsertRestrictions">
+                    <Record Type="Capabilities.InsertRestrictionsType">
+                        <PropertyValue Property="Insertable" Bool="false"/>
+                    </Record>
+                </Annotation>
+                <Annotation Term="Capabilities.UpdateRestrictions">
+                    <Record Type="Capabilities.UpdateRestrictionsType">
+                        <PropertyValue Property="Updatable" Bool="false"/>
+                    </Record>
+                </Annotation>
+            </Annotations>
+            <Annotations Target="invoicesrv.CompanyCodes/createdAt">
+                <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                <Annotation Term="Core.Immutable" Bool="true"/>
+                <Annotation Term="Core.Computed" Bool="true"/>
+                <Annotation Term="Common.Label" String="{i18n>CreatedAt}"/>
+                </Annotations>
+                <Annotations Target="invoicesrv.CompanyCodes/createdBy">
+                    <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                    <Annotation Term="Core.Immutable" Bool="true"/>
+                    <Annotation Term="Core.Computed" Bool="true"/>
+                    <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                        <Annotation Term="Common.Label" String="{i18n>CreatedBy}"/>
+                        </Annotations>
+                        <Annotations Target="invoicesrv.CompanyCodes/modifiedAt">
+                            <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                            <Annotation Term="Core.Computed" Bool="true"/>
+                            <Annotation Term="Common.Label" String="{i18n>ChangedAt}"/>
+                            </Annotations>
+                            <Annotations Target="invoicesrv.CompanyCodes/modifiedBy">
+                                <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                <Annotation Term="Core.Computed" Bool="true"/>
+                                <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                    <Annotation Term="Common.Label" String="{i18n>ChangedBy}"/>
+                                    </Annotations>
+                                    <Annotations Target="invoicesrv.CompanyCodes/companycode">
+                                        <Annotation Term="Validation.Minimum" Int="1000"/>
+                                        <Annotation Term="Validation.Maximum" Int="1999"/>
+                                    </Annotations>
+                                    <Annotations Target="invoicesrv.CompanyCodes/currency">
+                                        <Annotation Term="Common.Label" String="{i18n>Currency}"/>
+                                            <Annotation Term="Core.Description" String="{i18n>CurrencyCode.Description}"/>
+                                            </Annotations>
+                                            <Annotations Target="invoicesrv.CompanyCodes/currency_code">
+                                                <Annotation Term="Common.Label" String="{i18n>Currency}"/>
+                                                    <Annotation Term="Common.ValueList">
+                                                        <Record Type="Common.ValueListType">
+                                                            <PropertyValue Property="Label" String="{i18n>Currency}"/>
+                                                                <PropertyValue Property="CollectionPath" String="Currencies"/>
+                                                                <PropertyValue Property="Parameters">
+                                                                    <Collection>
+                                                                        <Record Type="Common.ValueListParameterInOut">
+                                                                            <PropertyValue Property="LocalDataProperty" PropertyPath="currency_code"/>
+                                                                            <PropertyValue Property="ValueListProperty" String="code"/>
+                                                                        </Record>
+                                                                        <Record Type="Common.ValueListParameterDisplayOnly">
+                                                                            <PropertyValue Property="ValueListProperty" String="name"/>
+                                                                        </Record>
+                                                                    </Collection>
+                                                                </PropertyValue>
+                                                            </Record>
+                                                        </Annotation>
+                                                        <Annotation Term="Core.Description" String="{i18n>CurrencyCode.Description}"/>
+                                                        </Annotations>
+                                                        <Annotations Target="invoicesrv.EntityContainer/Suppliers">
+                                                            <Annotation Term="Capabilities.DeleteRestrictions">
+                                                                <Record Type="Capabilities.DeleteRestrictionsType">
+                                                                    <PropertyValue Property="Deletable" Bool="false"/>
+                                                                </Record>
+                                                            </Annotation>
+                                                            <Annotation Term="Capabilities.InsertRestrictions">
+                                                                <Record Type="Capabilities.InsertRestrictionsType">
+                                                                    <PropertyValue Property="Insertable" Bool="false"/>
+                                                                </Record>
+                                                            </Annotation>
+                                                            <Annotation Term="Capabilities.UpdateRestrictions">
+                                                                <Record Type="Capabilities.UpdateRestrictionsType">
+                                                                    <PropertyValue Property="Updatable" Bool="false"/>
+                                                                </Record>
+                                                            </Annotation>
+                                                        </Annotations>
+                                                        <Annotations Target="invoicesrv.Suppliers/createdAt">
+                                                            <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                            <Annotation Term="Core.Immutable" Bool="true"/>
+                                                            <Annotation Term="Core.Computed" Bool="true"/>
+                                                            <Annotation Term="Common.Label" String="{i18n>CreatedAt}"/>
+                                                            </Annotations>
+                                                            <Annotations Target="invoicesrv.Suppliers/createdBy">
+                                                                <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                <Annotation Term="Core.Immutable" Bool="true"/>
+                                                                <Annotation Term="Core.Computed" Bool="true"/>
+                                                                <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                                                    <Annotation Term="Common.Label" String="{i18n>CreatedBy}"/>
+                                                                    </Annotations>
+                                                                    <Annotations Target="invoicesrv.Suppliers/modifiedAt">
+                                                                        <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                        <Annotation Term="Core.Computed" Bool="true"/>
+                                                                        <Annotation Term="Common.Label" String="{i18n>ChangedAt}"/>
+                                                                        </Annotations>
+                                                                        <Annotations Target="invoicesrv.Suppliers/modifiedBy">
+                                                                            <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                            <Annotation Term="Core.Computed" Bool="true"/>
+                                                                            <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                                                                <Annotation Term="Common.Label" String="{i18n>ChangedBy}"/>
+                                                                                </Annotations>
+                                                                                <Annotations Target="invoicesrv.EntityContainer/Addresses">
+                                                                                    <Annotation Term="Capabilities.DeleteRestrictions">
+                                                                                        <Record Type="Capabilities.DeleteRestrictionsType">
+                                                                                            <PropertyValue Property="Deletable" Bool="false"/>
+                                                                                        </Record>
+                                                                                    </Annotation>
+                                                                                    <Annotation Term="Capabilities.InsertRestrictions">
+                                                                                        <Record Type="Capabilities.InsertRestrictionsType">
+                                                                                            <PropertyValue Property="Insertable" Bool="false"/>
+                                                                                        </Record>
+                                                                                    </Annotation>
+                                                                                    <Annotation Term="Capabilities.UpdateRestrictions">
+                                                                                        <Record Type="Capabilities.UpdateRestrictionsType">
+                                                                                            <PropertyValue Property="Updatable" Bool="false"/>
+                                                                                        </Record>
+                                                                                    </Annotation>
+                                                                                </Annotations>
+                                                                                <Annotations Target="invoicesrv.Addresses/createdAt">
+                                                                                    <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                                    <Annotation Term="Core.Immutable" Bool="true"/>
+                                                                                    <Annotation Term="Core.Computed" Bool="true"/>
+                                                                                    <Annotation Term="Common.Label" String="{i18n>CreatedAt}"/>
+                                                                                    </Annotations>
+                                                                                    <Annotations Target="invoicesrv.Addresses/createdBy">
+                                                                                        <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                                        <Annotation Term="Core.Immutable" Bool="true"/>
+                                                                                        <Annotation Term="Core.Computed" Bool="true"/>
+                                                                                        <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                                                                            <Annotation Term="Common.Label" String="{i18n>CreatedBy}"/>
+                                                                                            </Annotations>
+                                                                                            <Annotations Target="invoicesrv.Addresses/modifiedAt">
+                                                                                                <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                                                <Annotation Term="Core.Computed" Bool="true"/>
+                                                                                                <Annotation Term="Common.Label" String="{i18n>ChangedAt}"/>
+                                                                                                </Annotations>
+                                                                                                <Annotations Target="invoicesrv.Addresses/modifiedBy">
+                                                                                                    <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                                                    <Annotation Term="Core.Computed" Bool="true"/>
+                                                                                                    <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                                                                                        <Annotation Term="Common.Label" String="{i18n>ChangedBy}"/>
+                                                                                                        </Annotations>
+                                                                                                        <Annotations Target="invoicesrv.EntityContainer/GLAccount">
+                                                                                                            <Annotation Term="Capabilities.DeleteRestrictions">
+                                                                                                                <Record Type="Capabilities.DeleteRestrictionsType">
+                                                                                                                    <PropertyValue Property="Deletable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                            <Annotation Term="Capabilities.InsertRestrictions">
+                                                                                                                <Record Type="Capabilities.InsertRestrictionsType">
+                                                                                                                    <PropertyValue Property="Insertable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                            <Annotation Term="Capabilities.UpdateRestrictions">
+                                                                                                                <Record Type="Capabilities.UpdateRestrictionsType">
+                                                                                                                    <PropertyValue Property="Updatable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                        </Annotations>
+                                                                                                        <Annotations Target="invoicesrv.EntityContainer/CostCenetr">
+                                                                                                            <Annotation Term="Capabilities.DeleteRestrictions">
+                                                                                                                <Record Type="Capabilities.DeleteRestrictionsType">
+                                                                                                                    <PropertyValue Property="Deletable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                            <Annotation Term="Capabilities.InsertRestrictions">
+                                                                                                                <Record Type="Capabilities.InsertRestrictionsType">
+                                                                                                                    <PropertyValue Property="Insertable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                            <Annotation Term="Capabilities.UpdateRestrictions">
+                                                                                                                <Record Type="Capabilities.UpdateRestrictionsType">
+                                                                                                                    <PropertyValue Property="Updatable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                        </Annotations>
+                                                                                                        <Annotations Target="invoicesrv.EntityContainer/PurchaseOrder">
+                                                                                                            <Annotation Term="Capabilities.DeleteRestrictions">
+                                                                                                                <Record Type="Capabilities.DeleteRestrictionsType">
+                                                                                                                    <PropertyValue Property="Deletable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                            <Annotation Term="Capabilities.InsertRestrictions">
+                                                                                                                <Record Type="Capabilities.InsertRestrictionsType">
+                                                                                                                    <PropertyValue Property="Insertable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                            <Annotation Term="Capabilities.UpdateRestrictions">
+                                                                                                                <Record Type="Capabilities.UpdateRestrictionsType">
+                                                                                                                    <PropertyValue Property="Updatable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                        </Annotations>
+                                                                                                        <Annotations Target="invoicesrv.EntityContainer/InvoiceWorkflows">
+                                                                                                            <Annotation Term="Common.DraftNode">
+                                                                                                                <Record Type="Common.DraftNodeType">
+                                                                                                                    <PropertyValue Property="PreparationAction" String="invoicesrv.draftPrepare"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                            <Annotation Term="Capabilities.DeleteRestrictions">
+                                                                                                                <Record Type="Capabilities.DeleteRestrictionsType">
+                                                                                                                    <PropertyValue Property="Deletable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                            <Annotation Term="Capabilities.InsertRestrictions">
+                                                                                                                <Record Type="Capabilities.InsertRestrictionsType">
+                                                                                                                    <PropertyValue Property="Insertable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                            <Annotation Term="Capabilities.UpdateRestrictions">
+                                                                                                                <Record Type="Capabilities.UpdateRestrictionsType">
+                                                                                                                    <PropertyValue Property="Updatable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                        </Annotations>
+                                                                                                        <Annotations Target="invoicesrv.InvoiceWorkflows/IsActiveEntity">
+                                                                                                            <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                        </Annotations>
+                                                                                                        <Annotations Target="invoicesrv.InvoiceWorkflows/HasActiveEntity">
+                                                                                                            <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                        </Annotations>
+                                                                                                        <Annotations Target="invoicesrv.InvoiceWorkflows/HasDraftEntity">
+                                                                                                            <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                        </Annotations>
+                                                                                                        <Annotations Target="invoicesrv.InvoiceWorkflows/DraftAdministrativeData">
+                                                                                                            <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                        </Annotations>
+                                                                                                        <Annotations Target="invoicesrv.EntityContainer/WFUsers">
+                                                                                                            <Annotation Term="Capabilities.DeleteRestrictions">
+                                                                                                                <Record Type="Capabilities.DeleteRestrictionsType">
+                                                                                                                    <PropertyValue Property="Deletable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                            <Annotation Term="Capabilities.InsertRestrictions">
+                                                                                                                <Record Type="Capabilities.InsertRestrictionsType">
+                                                                                                                    <PropertyValue Property="Insertable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                            <Annotation Term="Capabilities.UpdateRestrictions">
+                                                                                                                <Record Type="Capabilities.UpdateRestrictionsType">
+                                                                                                                    <PropertyValue Property="Updatable" Bool="false"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                        </Annotations>
+                                                                                                        <Annotations Target="invoicesrv.EntityContainer/Invoices">
+                                                                                                            <Annotation Term="Common.DraftRoot">
+                                                                                                                <Record Type="Common.DraftRootType">
+                                                                                                                    <PropertyValue Property="ActivationAction" String="invoicesrv.draftActivate"/>
+                                                                                                                    <PropertyValue Property="EditAction" String="invoicesrv.draftEdit"/>
+                                                                                                                    <PropertyValue Property="PreparationAction" String="invoicesrv.draftPrepare"/>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                        </Annotations>
+                                                                                                        <Annotations Target="invoicesrv.Invoices/createdAt">
+                                                                                                            <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                                                            <Annotation Term="Core.Immutable" Bool="true"/>
+                                                                                                            <Annotation Term="Core.Computed" Bool="true"/>
+                                                                                                            <Annotation Term="Common.Label" String="{i18n>CreatedAt}"/>
+                                                                                                            </Annotations>
+                                                                                                            <Annotations Target="invoicesrv.Invoices/createdBy">
+                                                                                                                <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                                                                <Annotation Term="Core.Immutable" Bool="true"/>
+                                                                                                                <Annotation Term="Core.Computed" Bool="true"/>
+                                                                                                                <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                                                                                                    <Annotation Term="Common.Label" String="{i18n>CreatedBy}"/>
+                                                                                                                    </Annotations>
+                                                                                                                    <Annotations Target="invoicesrv.Invoices/modifiedAt">
+                                                                                                                        <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                                                                        <Annotation Term="Core.Computed" Bool="true"/>
+                                                                                                                        <Annotation Term="Common.Label" String="{i18n>ChangedAt}"/>
+                                                                                                                        </Annotations>
+                                                                                                                        <Annotations Target="invoicesrv.Invoices/modifiedBy">
+                                                                                                                            <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                                                                            <Annotation Term="Core.Computed" Bool="true"/>
+                                                                                                                            <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                                                                                                                <Annotation Term="Common.Label" String="{i18n>ChangedBy}"/>
+                                                                                                                                </Annotations>
+                                                                                                                                <Annotations Target="invoicesrv.Invoices/currency">
+                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>Currency}"/>
+                                                                                                                                        <Annotation Term="Core.Description" String="{i18n>CurrencyCode.Description}"/>
+                                                                                                                                        </Annotations>
+                                                                                                                                        <Annotations Target="invoicesrv.Invoices/currency_code">
+                                                                                                                                            <Annotation Term="Common.Label" String="{i18n>Currency}"/>
+                                                                                                                                                <Annotation Term="Common.ValueList">
+                                                                                                                                                    <Record Type="Common.ValueListType">
+                                                                                                                                                        <PropertyValue Property="Label" String="{i18n>Currency}"/>
+                                                                                                                                                            <PropertyValue Property="CollectionPath" String="Currencies"/>
+                                                                                                                                                            <PropertyValue Property="Parameters">
+                                                                                                                                                                <Collection>
+                                                                                                                                                                    <Record Type="Common.ValueListParameterInOut">
+                                                                                                                                                                        <PropertyValue Property="LocalDataProperty" PropertyPath="currency_code"/>
+                                                                                                                                                                        <PropertyValue Property="ValueListProperty" String="code"/>
+                                                                                                                                                                    </Record>
+                                                                                                                                                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                                                                                                                                                        <PropertyValue Property="ValueListProperty" String="name"/>
+                                                                                                                                                                    </Record>
+                                                                                                                                                                </Collection>
+                                                                                                                                                            </PropertyValue>
+                                                                                                                                                        </Record>
+                                                                                                                                                    </Annotation>
+                                                                                                                                                    <Annotation Term="Core.Description" String="{i18n>CurrencyCode.Description}"/>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="invoicesrv.Invoices/IsActiveEntity">
+                                                                                                                                                        <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="invoicesrv.Invoices/HasActiveEntity">
+                                                                                                                                                        <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="invoicesrv.Invoices/HasDraftEntity">
+                                                                                                                                                        <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="invoicesrv.Invoices/DraftAdministrativeData">
+                                                                                                                                                        <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="invoicesrv.setOrderProcessing(invoicesrv.Invoices)">
+                                                                                                                                                        <Annotation Term="Common.SideEffects">
+                                                                                                                                                            <Record Type="Common.SideEffectsType">
+                                                                                                                                                                <PropertyValue Property="TargetProperties">
+                                                                                                                                                                    <Collection>
+                                                                                                                                                                        <String>_it/status</String>
+                                                                                                                                                                    </Collection>
+                                                                                                                                                                </PropertyValue>
+                                                                                                                                                            </Record>
+                                                                                                                                                        </Annotation>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="invoicesrv.setOrderOpen(invoicesrv.Invoices)">
+                                                                                                                                                        <Annotation Term="Common.SideEffects">
+                                                                                                                                                            <Record Type="Common.SideEffectsType">
+                                                                                                                                                                <PropertyValue Property="TargetProperties">
+                                                                                                                                                                    <Collection>
+                                                                                                                                                                        <String>_it/status</String>
+                                                                                                                                                                        <String>_it/wfstatus</String>
+                                                                                                                                                                    </Collection>
+                                                                                                                                                                </PropertyValue>
+                                                                                                                                                            </Record>
+                                                                                                                                                        </Annotation>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="invoicesrv.requestInfo(invoicesrv.Invoices)">
+                                                                                                                                                        <Annotation Term="Common.SideEffects">
+                                                                                                                                                            <Record Type="Common.SideEffectsType">
+                                                                                                                                                                <PropertyValue Property="TargetProperties">
+                                                                                                                                                                    <Collection>
+                                                                                                                                                                        <String>_it/wfstatus</String>
+                                                                                                                                                                        <String>_it/wfapprover</String>
+                                                                                                                                                                        <String>_it/requestcomment</String>
+                                                                                                                                                                        <String>_it/instanceID</String>
+                                                                                                                                                                    </Collection>
+                                                                                                                                                                </PropertyValue>
+                                                                                                                                                                <PropertyValue Property="TargetEntities">
+                                                                                                                                                                    <Collection>
+                                                                                                                                                                        <NavigationPropertyPath>_it/wfitems</NavigationPropertyPath>
+                                                                                                                                                                    </Collection>
+                                                                                                                                                                </PropertyValue>
+                                                                                                                                                            </Record>
+                                                                                                                                                        </Annotation>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="invoicesrv.requestInfo(invoicesrv.Invoices)/SendTo">
+                                                                                                                                                        <Annotation Term="Common.ValueList">
+                                                                                                                                                            <Record Type="Common.ValueListType">
+                                                                                                                                                                <PropertyValue Property="CollectionPath" String="WFUsers"/>
+                                                                                                                                                                <PropertyValue Property="Parameters">
+                                                                                                                                                                    <Collection>
+                                                                                                                                                                        <Record Type="Common.ValueListParameterDisplayOnly">
+                                                                                                                                                                            <PropertyValue Property="ValueListProperty" String="id"/>
+                                                                                                                                                                        </Record>
+                                                                                                                                                                        <Record Type="Common.ValueListParameterDisplayOnly">
+                                                                                                                                                                            <PropertyValue Property="ValueListProperty" String="name"/>
+                                                                                                                                                                        </Record>
+                                                                                                                                                                        <Record Type="Common.ValueListParameterInOut">
+                                                                                                                                                                            <PropertyValue Property="LocalDataProperty" PropertyPath="SendTo"/>
+                                                                                                                                                                            <PropertyValue Property="ValueListProperty" String="email"/>
+                                                                                                                                                                        </Record>
+                                                                                                                                                                    </Collection>
+                                                                                                                                                                </PropertyValue>
+                                                                                                                                                            </Record>
+                                                                                                                                                        </Annotation>
+                                                                                                                                                        <Annotation Term="Common.ValueListWithFixedValues" Bool="false"/>
+                                                                                                                                                        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+                                                                                                                                                        <Annotation Term="Common.Label" String="Send To"/>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="invoicesrv.requestInfo(invoicesrv.Invoices)/Description">
+                                                                                                                                                        <Annotation Term="Common.FieldControl" EnumMember="Common.FieldControlType/Mandatory"/>
+                                                                                                                                                        <Annotation Term="Common.Label" String="Description"/>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="invoicesrv.requestInfo(invoicesrv.Invoices)/IsMultipleApprovars">
+                                                                                                                                                        <Annotation Term="UI.ParameterDefaultValue" Bool="false"/>
+                                                                                                                                                        <Annotation Term="Common.Label" String="I need answer from all participants"/>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="invoicesrv.Currencies">
+                                                                                                                                                        <Annotation Term="UI.Identification">
+                                                                                                                                                            <Collection>
+                                                                                                                                                                <Record Type="UI.DataField">
+                                                                                                                                                                    <PropertyValue Property="Value" Path="name"/>
+                                                                                                                                                                </Record>
+                                                                                                                                                            </Collection>
+                                                                                                                                                        </Annotation>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="invoicesrv.Currencies/name">
+                                                                                                                                                        <Annotation Term="Common.Label" String="{i18n>Name}"/>
+                                                                                                                                                        </Annotations>
+                                                                                                                                                        <Annotations Target="invoicesrv.Currencies/descr">
+                                                                                                                                                            <Annotation Term="Common.Label" String="{i18n>Description}"/>
+                                                                                                                                                            </Annotations>
+                                                                                                                                                            <Annotations Target="invoicesrv.Currencies/code">
+                                                                                                                                                                <Annotation Term="Common.Text" Path="name"/>
+                                                                                                                                                                <Annotation Term="Common.Label" String="{i18n>CurrencyCode}"/>
+                                                                                                                                                                </Annotations>
+                                                                                                                                                                <Annotations Target="invoicesrv.Currencies/symbol">
+                                                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>CurrencySymbol}"/>
+                                                                                                                                                                    </Annotations>
+                                                                                                                                                                    <Annotations Target="invoicesrv.EntityContainer/InvoiceItems">
+                                                                                                                                                                        <Annotation Term="Common.DraftNode">
+                                                                                                                                                                            <Record Type="Common.DraftNodeType">
+                                                                                                                                                                                <PropertyValue Property="PreparationAction" String="invoicesrv.draftPrepare"/>
+                                                                                                                                                                            </Record>
+                                                                                                                                                                        </Annotation>
+                                                                                                                                                                    </Annotations>
+                                                                                                                                                                    <Annotations Target="invoicesrv.InvoiceItems/createdAt">
+                                                                                                                                                                        <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                                                                                                                        <Annotation Term="Core.Immutable" Bool="true"/>
+                                                                                                                                                                        <Annotation Term="Core.Computed" Bool="true"/>
+                                                                                                                                                                        <Annotation Term="Common.Label" String="{i18n>CreatedAt}"/>
+                                                                                                                                                                        </Annotations>
+                                                                                                                                                                        <Annotations Target="invoicesrv.InvoiceItems/createdBy">
+                                                                                                                                                                            <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                                                                                                                            <Annotation Term="Core.Immutable" Bool="true"/>
+                                                                                                                                                                            <Annotation Term="Core.Computed" Bool="true"/>
+                                                                                                                                                                            <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                                                                                                                                                                <Annotation Term="Common.Label" String="{i18n>CreatedBy}"/>
+                                                                                                                                                                                </Annotations>
+                                                                                                                                                                                <Annotations Target="invoicesrv.InvoiceItems/modifiedAt">
+                                                                                                                                                                                    <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                                                                                                                                    <Annotation Term="Core.Computed" Bool="true"/>
+                                                                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>ChangedAt}"/>
+                                                                                                                                                                                    </Annotations>
+                                                                                                                                                                                    <Annotations Target="invoicesrv.InvoiceItems/modifiedBy">
+                                                                                                                                                                                        <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                                                                                                                                        <Annotation Term="Core.Computed" Bool="true"/>
+                                                                                                                                                                                        <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                                                                                                                                                                            <Annotation Term="Common.Label" String="{i18n>ChangedBy}"/>
+                                                                                                                                                                                            </Annotations>
+                                                                                                                                                                                            <Annotations Target="invoicesrv.InvoiceItems/currency">
+                                                                                                                                                                                                <Annotation Term="Common.Label" String="{i18n>Currency}"/>
+                                                                                                                                                                                                    <Annotation Term="Core.Description" String="{i18n>CurrencyCode.Description}"/>
+                                                                                                                                                                                                    </Annotations>
+                                                                                                                                                                                                    <Annotations Target="invoicesrv.InvoiceItems/currency_code">
+                                                                                                                                                                                                        <Annotation Term="Common.Label" String="{i18n>Currency}"/>
+                                                                                                                                                                                                            <Annotation Term="Common.ValueList">
+                                                                                                                                                                                                                <Record Type="Common.ValueListType">
+                                                                                                                                                                                                                    <PropertyValue Property="Label" String="{i18n>Currency}"/>
+                                                                                                                                                                                                                        <PropertyValue Property="CollectionPath" String="Currencies"/>
+                                                                                                                                                                                                                        <PropertyValue Property="Parameters">
+                                                                                                                                                                                                                            <Collection>
+                                                                                                                                                                                                                                <Record Type="Common.ValueListParameterInOut">
+                                                                                                                                                                                                                                    <PropertyValue Property="LocalDataProperty" PropertyPath="currency_code"/>
+                                                                                                                                                                                                                                    <PropertyValue Property="ValueListProperty" String="code"/>
+                                                                                                                                                                                                                                </Record>
+                                                                                                                                                                                                                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                                                                                                                                                                                                                    <PropertyValue Property="ValueListProperty" String="name"/>
+                                                                                                                                                                                                                                </Record>
+                                                                                                                                                                                                                            </Collection>
+                                                                                                                                                                                                                        </PropertyValue>
+                                                                                                                                                                                                                    </Record>
+                                                                                                                                                                                                                </Annotation>
+                                                                                                                                                                                                                <Annotation Term="Core.Description" String="{i18n>CurrencyCode.Description}"/>
+                                                                                                                                                                                                                </Annotations>
+                                                                                                                                                                                                                <Annotations Target="invoicesrv.InvoiceItems/IsActiveEntity">
+                                                                                                                                                                                                                    <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                                                                                </Annotations>
+                                                                                                                                                                                                                <Annotations Target="invoicesrv.InvoiceItems/HasActiveEntity">
+                                                                                                                                                                                                                    <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                                                                                </Annotations>
+                                                                                                                                                                                                                <Annotations Target="invoicesrv.InvoiceItems/HasDraftEntity">
+                                                                                                                                                                                                                    <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                                                                                </Annotations>
+                                                                                                                                                                                                                <Annotations Target="invoicesrv.InvoiceItems/DraftAdministrativeData">
+                                                                                                                                                                                                                    <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                                                                                </Annotations>
+                                                                                                                                                                                                                <Annotations Target="invoicesrv.DraftAdministrativeData">
+                                                                                                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>Draft_DraftAdministrativeData}"/>
+                                                                                                                                                                                                                    </Annotations>
+                                                                                                                                                                                                                    <Annotations Target="invoicesrv.DraftAdministrativeData/DraftUUID">
+                                                                                                                                                                                                                        <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                                                                                        <Annotation Term="Common.Label" String="{i18n>Draft_DraftUUID}"/>
+                                                                                                                                                                                                                        </Annotations>
+                                                                                                                                                                                                                        <Annotations Target="invoicesrv.DraftAdministrativeData/CreationDateTime">
+                                                                                                                                                                                                                            <Annotation Term="Common.Label" String="{i18n>Draft_CreationDateTime}"/>
+                                                                                                                                                                                                                            </Annotations>
+                                                                                                                                                                                                                            <Annotations Target="invoicesrv.DraftAdministrativeData/CreatedByUser">
+                                                                                                                                                                                                                                <Annotation Term="Common.Label" String="{i18n>Draft_CreatedByUser}"/>
+                                                                                                                                                                                                                                </Annotations>
+                                                                                                                                                                                                                                <Annotations Target="invoicesrv.DraftAdministrativeData/DraftIsCreatedByMe">
+                                                                                                                                                                                                                                    <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>Draft_DraftIsCreatedByMe}"/>
+                                                                                                                                                                                                                                    </Annotations>
+                                                                                                                                                                                                                                    <Annotations Target="invoicesrv.DraftAdministrativeData/LastChangeDateTime">
+                                                                                                                                                                                                                                        <Annotation Term="Common.Label" String="{i18n>Draft_LastChangeDateTime}"/>
+                                                                                                                                                                                                                                        </Annotations>
+                                                                                                                                                                                                                                        <Annotations Target="invoicesrv.DraftAdministrativeData/LastChangedByUser">
+                                                                                                                                                                                                                                            <Annotation Term="Common.Label" String="{i18n>Draft_LastChangedByUser}"/>
+                                                                                                                                                                                                                                            </Annotations>
+                                                                                                                                                                                                                                            <Annotations Target="invoicesrv.DraftAdministrativeData/InProcessByUser">
+                                                                                                                                                                                                                                                <Annotation Term="Common.Label" String="{i18n>Draft_InProcessByUser}"/>
+                                                                                                                                                                                                                                                </Annotations>
+                                                                                                                                                                                                                                                <Annotations Target="invoicesrv.DraftAdministrativeData/DraftIsProcessedByMe">
+                                                                                                                                                                                                                                                    <Annotation Term="UI.Hidden" Bool="true"/>
+                                                                                                                                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>Draft_DraftIsProcessedByMe}"/>
+                                                                                                                                                                                                                                                    </Annotations>
+                                                                                                                                                                                                                                                    <Annotations Target="invoicesrv.Currencies_texts/locale">
+                                                                                                                                                                                                                                                        <Annotation Term="Common.Label" String="{i18n>LanguageCode}"/>
+                                                                                                                                                                                                                                                        </Annotations>
+                                                                                                                                                                                                                                                        <Annotations Target="invoicesrv.Currencies_texts/name">
+                                                                                                                                                                                                                                                            <Annotation Term="Common.Label" String="{i18n>Name}"/>
+                                                                                                                                                                                                                                                            </Annotations>
+                                                                                                                                                                                                                                                            <Annotations Target="invoicesrv.Currencies_texts/descr">
+                                                                                                                                                                                                                                                                <Annotation Term="Common.Label" String="{i18n>Description}"/>
+                                                                                                                                                                                                                                                                </Annotations>
+                                                                                                                                                                                                                                                                <Annotations Target="invoicesrv.Currencies_texts/code">
+                                                                                                                                                                                                                                                                    <Annotation Term="Common.Text" Path="name"/>
+                                                                                                                                                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>CurrencyCode}"/>
+                                                                                                                                                                                                                                                                    </Annotations>
+                                                                                                                                                                                                                                                                </Schema>
+                                                                                                                                                                                                                                                            </edmx:DataServices>
+                                                                                                                                                                                                                                                        </edmx:Edmx>
